@@ -1,133 +1,74 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 
-function Shell({
-  title,
-  subtitle,
-  badge = "Portfolio demo · local-only",
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  badge?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-black dark:text-zinc-100">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <header className="mb-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{badge}</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
-        </header>
-        {children}
-        <footer className="mt-10 border-t border-zinc-200 pt-4 text-xs text-zinc-500 dark:border-zinc-800">
-          Honest demo: no multi-tenant backend. State (if any) stays in this browser.
-        </footer>
-      </div>
-    </div>
-  );
-}
+type Run = { ms: number; ok: boolean; at: number; target: string };
 
-function Button({
-  children,
-  onClick,
-  variant = "primary",
-  disabled,
-  type = "button",
-  className = "",
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  disabled?: boolean;
-  type?: "button" | "submit";
-  className?: string;
-}) {
-  const base =
-    "inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 " +
-    className;
-  const styles =
-    variant === "primary"
-      ? "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900"
-      : variant === "secondary"
-        ? "bg-white text-zinc-900 ring-1 ring-zinc-200 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700"
-        : variant === "danger"
-          ? "bg-red-600 text-white hover:bg-red-500"
-          : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900";
-  return (
-    <button type={type} disabled={disabled} onClick={onClick} className={`${base} ${styles}`}>
-      {children}
-    </button>
-  );
-}
-
-const inputClass =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950";
-
-function useLocalStorage<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw != null) setValue(JSON.parse(raw) as T);
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
-  }, [key]);
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value, ready]);
-  return [value, setValue] as const;
-}
-
-function uid() {
-  return crypto.randomUUID();
-}
-
-async function copyText(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
+const presets = ["/", "https://example.com", "https://bookchaowalit.com"];
 
 export default function Home() {
   const [url, setUrl] = useState("/");
-  const [runs, setRuns] = useState<{ ms: number; ok: boolean; at: number }[]>([]);
+  const [runs, setRuns] = useState<Run[]>([]);
   const [busy, setBusy] = useState(false);
-  const avg = runs.length ? Math.round(runs.reduce((a, r) => a + r.ms, 0) / runs.length) : 0;
-  const ping = async () => {
+  const average = runs.length ? Math.round(runs.reduce((sum, run) => sum + run.ms, 0) / runs.length) : 0;
+  const latest = runs[0];
+  const visualLatency = Math.min(100, Math.max(5, latest ? latest.ms / 3 : 5));
+  const status = busy ? "MEASURING" : latest ? (latest.ok ? "RESPONDED" : "NO RESPONSE") : "READY";
+  const host = useMemo(() => {
+    try { return new URL(url, "http://localhost").host; } catch { return "invalid target"; }
+  }, [url]);
+
+  async function ping() {
     setBusy(true);
-    const t0 = performance.now();
+    const started = performance.now();
     try {
-      await fetch(url, { cache: "no-store" });
-      setRuns((prev) => [{ ms: Math.round(performance.now() - t0), ok: true, at: Date.now() }, ...prev].slice(0, 20));
+      await fetch(url, { cache: "no-store", mode: "cors" });
+      setRuns((previous) => [{ ms: Math.round(performance.now() - started), ok: true, at: Date.now(), target: host }, ...previous].slice(0, 12));
     } catch {
-      setRuns((prev) => [{ ms: Math.round(performance.now() - t0), ok: false, at: Date.now() }, ...prev].slice(0, 20));
+      setRuns((previous) => [{ ms: Math.round(performance.now() - started), ok: false, at: Date.now(), target: host }, ...previous].slice(0, 12));
     } finally {
       setBusy(false);
     }
-  };
+  }
+
   return (
-    <Shell title="Latency Test" subtitle="Ping a URL from the browser and keep recent timings.">
-      <div className="flex flex-wrap gap-2">
-        <input className={`${inputClass} max-w-md`} value={url} onChange={(e) => setUrl(e.target.value)} />
-        <Button onClick={() => void ping()} disabled={busy}>{busy ? "Pinging…" : "Ping"}</Button>
-      </div>
-      <p className="mt-4 text-sm">Average: <span className="font-mono font-semibold">{avg} ms</span> ({runs.length} runs)</p>
-      <ul className="mt-4 space-y-1 font-mono text-sm">
-        {runs.map((r, i) => (
-          <li key={i} className={r.ok ? "" : "text-red-600"}>{r.ms} ms · {r.ok ? "ok" : "fail"} · {new Date(r.at).toLocaleTimeString()}</li>
-        ))}
-      </ul>
-    </Shell>
+    <main className="instrument-shell">
+      <header className="instrument-topbar">
+        <span className="instrument-brand"><i /> ROUND-TRIP</span>
+        <span className="instrument-mode">BROWSER INSTRUMENT / LOCAL SESSION</span>
+        <span className="instrument-clock">SESSION / LOCAL</span>
+      </header>
+
+      <section className="instrument-hero">
+        <div className="instrument-copy">
+          <p className="instrument-kicker">Packet timing laboratory</p>
+          <h1>How long does<br /><em>the signal take?</em></h1>
+          <p>Measure a URL from this browser. One request, one round trip, no server-side fiction.</p>
+        </div>
+        <div className="instrument-radar" aria-label={`Current latency ${average} milliseconds`}>
+          <div className="radar-ring ring-one" /><div className="radar-ring ring-two" /><div className="radar-ring ring-three" />
+          <div className="radar-cross cross-x" /><div className="radar-cross cross-y" /><div className="radar-sweep" />
+          <strong>{average}</strong><span>MS AVG</span>
+        </div>
+      </section>
+
+      <section className="probe-panel" aria-label="Latency probe">
+        <div className="probe-label"><span>01</span><b>Set a target</b><small>HTTP request from your current browser</small></div>
+        <div className="probe-controls">
+          <label className="target-input"><span>↳</span><input value={url} onChange={(event) => setUrl(event.target.value)} aria-label="URL to ping" placeholder="https://your-target.test" /></label>
+          <button className="probe-button" onClick={() => void ping()} disabled={busy}>{busy ? "WORKING…" : "PING TARGET"}<span>↗</span></button>
+        </div>
+        <div className="preset-row"><span>Try a station:</span>{presets.map((preset) => <button key={preset} onClick={() => setUrl(preset)}>{preset}</button>)}</div>
+      </section>
+
+      <section className="readout-grid">
+        <div className="readout-card readout-primary"><div className="readout-heading"><span>02 / Current reading</span><b className={busy ? "live-dot pulse" : "live-dot"} />{status}</div><div className="big-reading">{latest ? latest.ms : "—"}<small>ms</small></div><div className="signal-track"><i style={{ width: `${visualLatency}%` }} /></div><div className="readout-meta"><span>{latest ? latest.target : host}</span><span>{latest ? new Date(latest.at).toLocaleTimeString() : "Awaiting probe"}</span></div></div>
+        <div className="readout-card"><div className="readout-heading"><span>03 / Session average</span><b>12 max</b></div><div className="average-reading">{average}<small>ms</small></div><p>Across the most recent {runs.length} {runs.length === 1 ? "measurement" : "measurements"} in this tab.</p></div>
+      </section>
+
+      <section className="log-section"><div className="log-title"><span>04 / Measurement log</span><span>{runs.length ? "newest first" : "no readings yet"}</span></div>{runs.length > 0 ? <div className="log-list">{runs.map((run, index) => <div className="log-row" key={`${run.at}-${index}`}><span>{String(index + 1).padStart(2, "0")}</span><strong>{run.ms}<small>ms</small></strong><span>{run.ok ? "response received" : "request failed"}</span><span>{run.target}</span><time>{new Date(run.at).toLocaleTimeString()}</time></div>)}</div> : <div className="log-empty">Run a probe to leave the first trace in this session.</div>}</section>
+
+      <footer className="instrument-footer"><span>HONEST DEMO / CORS AND NETWORK CONDITIONS APPLY</span><span>R-T / 001</span></footer>
+    </main>
   );
 }

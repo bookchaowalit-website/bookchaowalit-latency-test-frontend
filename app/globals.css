@@ -1,26 +1,32 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+:root { --void: #101719; --panel: #172124; --line: #3a5150; --text: #e6eee3; --muted: #8ea09a; --cyan: #75e4d2; --amber: #f2b866; --red: #ef765e; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--void); color: var(--text); font-family: "Avenir Next", "Trebuchet MS", sans-serif; }
+button, input { font: inherit; }
+button { color: inherit; }
+.instrument-shell { max-width: 1240px; min-height: 100vh; margin: auto; padding: 22px 34px 28px; }
+.instrument-topbar, .instrument-footer { display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; letter-spacing: .11em; text-transform: uppercase; }
+.instrument-topbar { align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 17px; }
+.instrument-brand { color: var(--text); font-weight: 800; }
+.instrument-brand i { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border: 2px solid var(--cyan); border-radius: 50%; }
+.instrument-hero { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 60px; align-items: center; padding: 78px 0 70px; }
+.instrument-kicker { margin: 0 0 24px; color: var(--cyan); font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
+.instrument-copy h1 { margin: 0; font-size: clamp(52px, 8vw, 108px); line-height: .86; letter-spacing: -.07em; font-weight: 700; }
+.instrument-copy h1 em { color: var(--amber); font-family: Georgia, serif; font-weight: 400; letter-spacing: -.08em; }
+.instrument-copy > p:last-child { max-width: 460px; margin: 34px 0 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
+.instrument-radar { position: relative; width: 280px; height: 280px; border: 1px solid var(--line); border-radius: 50%; background: #142023; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 0 16px #131e20, 0 0 0 17px var(--line); }
+.radar-ring { position: absolute; border: 1px solid #31504d; border-radius: 50%; }
+.ring-one { inset: 25%; }.ring-two { inset: 12%; }.ring-three { inset: -1px; }
+.radar-cross { position: absolute; background: #31504d; }.cross-x { width: 100%; height: 1px; }.cross-y { width: 1px; height: 100%; }
+.radar-sweep { position: absolute; right: 50%; bottom: 50%; width: 50%; height: 2px; background: var(--cyan); transform-origin: right center; transform: rotate(-35deg); box-shadow: 0 0 14px var(--cyan); }
+.instrument-radar strong { position: relative; z-index: 1; color: var(--cyan); font-family: ui-monospace, monospace; font-size: 52px; line-height: .9; }.instrument-radar > span { position: relative; z-index: 1; margin-top: 8px; color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .15em; }
+.probe-panel { border: 1px solid var(--line); background: var(--panel); padding: 24px; }.probe-label { display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px; }.probe-label span, .log-title span:first-child { color: var(--cyan); font-family: ui-monospace, monospace; font-size: 11px; }.probe-label b { font-size: 17px; }.probe-label small { color: var(--muted); font-size: 12px; }
+.probe-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }.target-input { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); background: var(--void); padding: 0 15px; }.target-input span { color: var(--cyan); font-size: 22px; }.target-input input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); padding: 16px 0; font-family: ui-monospace, monospace; font-size: 14px; }.target-input input::placeholder { color: #60716d; }
+.probe-button { min-width: 170px; border: 1px solid var(--cyan); background: var(--cyan); color: var(--void); cursor: pointer; font-family: ui-monospace, monospace; font-size: 11px; font-weight: 800; letter-spacing: .08em; }.probe-button span { margin-left: 20px; font-size: 18px; }.probe-button:disabled { cursor: wait; opacity: .6; }
+.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 15px; color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; }.preset-row button { border: 0; border-bottom: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; font-size: 10px; }.preset-row button:hover { border-color: var(--cyan); color: var(--cyan); }
+.readout-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 14px; margin-top: 14px; }.readout-card { min-height: 230px; border: 1px solid var(--line); padding: 20px; background: #131e20; }.readout-primary { background: var(--panel); }.readout-heading, .readout-meta, .log-title, .log-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }.readout-heading { color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }.readout-heading b { color: var(--cyan); font-weight: 400; }.live-dot { width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--cyan); }.pulse { animation: pulse 1s steps(2, end) infinite; }.big-reading, .average-reading { margin-top: 38px; color: var(--cyan); font-family: ui-monospace, monospace; font-size: 90px; line-height: .8; }.average-reading { color: var(--amber); font-size: 72px; }.big-reading small, .average-reading small { margin-left: 10px; color: var(--muted); font-size: 17px; }.readout-card p { max-width: 250px; margin-top: 30px; color: var(--muted); font-size: 13px; line-height: 1.5; }.signal-track { height: 5px; margin-top: 42px; background: #2a3a3b; }.signal-track i { display: block; height: 100%; background: var(--cyan); transition: width .25s ease; }.readout-meta { margin-top: 10px; color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; }
+.log-section { margin-top: 54px; border-top: 1px solid var(--line); }.log-title { padding: 14px 0; color: var(--muted); font-family: ui-monospace, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }.log-list { border-top: 1px solid var(--line); }.log-row { min-height: 53px; border-bottom: 1px solid #26393a; color: var(--muted); font-family: ui-monospace, monospace; font-size: 11px; }.log-row > span:first-child { width: 30px; color: var(--cyan); }.log-row strong { width: 100px; color: var(--text); font-size: 15px; font-weight: 400; }.log-row strong small { margin-left: 5px; color: var(--muted); font-size: 10px; }.log-row > span:nth-child(3) { flex: 1; }.log-row time { color: #61716f; }.log-empty { border-bottom: 1px solid var(--line); padding: 30px 0; color: var(--muted); font-family: Georgia, serif; font-size: 19px; }.instrument-footer { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); }
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+@media (max-width: 720px) { .instrument-shell { padding: 18px; }.instrument-mode { display: none; }.instrument-hero { display: block; padding: 54px 0 42px; }.instrument-copy h1 { font-size: clamp(52px, 17vw, 84px); }.instrument-radar { width: 190px; height: 190px; margin: 64px auto 18px; box-shadow: 0 0 0 10px #131e20, 0 0 0 11px var(--line); }.instrument-radar strong { font-size: 38px; }.probe-panel { padding: 16px; }.probe-label { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; }.probe-label small { grid-column: 2; }.probe-controls { display: block; }.target-input { margin-bottom: 10px; }.probe-button { width: 100%; padding: 16px; }.readout-grid { display: block; }.readout-card + .readout-card { margin-top: 14px; }.log-row { display: grid; grid-template-columns: 30px 70px 1fr; gap: 8px; padding: 9px 0; }.log-row > span:nth-child(3) { grid-column: 3; }.log-row > span:nth-child(4), .log-row time { grid-column: 3; }.instrument-footer { display: block; line-height: 2; } }
