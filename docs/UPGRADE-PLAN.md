@@ -22,3 +22,13 @@ Score: 7/10 (was 4/10) — measurements now work for cross-origin targets, input
 ## Done in this pass (pass 2)
 
 - Canonical host is config-driven: `lib/site.ts` resolves `NEXT_PUBLIC_SITE_URL` (validated, clear error on a non-http(s) value) and feeds `metadataBase`, generated `app/sitemap.ts` / `app/robots.ts` and the MCP `get_app_info` URL; removed the stale template `public/sitemap.xml` / `robots.txt` (they pointed at `bookchaowalit.com` and a `*.vercel.app` name that differs from the project URL). Tested in `lib/site.test.ts`.
+
+## Done in this pass (pass 3)
+- Edge-case pass on `normalizeTarget` in `lib/latency.ts` (regression tests in
+  `lib/latency.test.ts`):
+  - `localhost:3000` and `example.com:8080/health` matched the "has a scheme"
+    regex, were parsed as the schemes `localhost:` / `example.com:` and were
+    rejected with "Only http and https targets can be measured". Host:port
+    input is now prefixed with https like other bare hosts.
+  - Zero-width characters / BOM pasted around a target are stripped, so an
+    invisible-only input reports "Enter a URL" instead of probing `https:///`.

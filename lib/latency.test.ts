@@ -40,3 +40,16 @@ describe("addRun", () => {
     expect(runs[0].ms).toBe(MAX_RUNS + 2);
   });
 });
+
+describe("normalizeTarget edge cases", () => {
+  it("treats host:port as a host, not as a URL scheme", () => {
+    expect(normalizeTarget("localhost:3000", "http://x")).toEqual({ url: "https://localhost:3000/", host: "localhost:3000" });
+    expect(normalizeTarget("example.com:8080/health", "http://x")).toEqual({ url: "https://example.com:8080/health", host: "example.com:8080" });
+    expect(normalizeTarget("http://localhost:3000", "http://x")).toEqual({ url: "http://localhost:3000/", host: "localhost:3000" });
+    expect(normalizeTarget("javascript:alert(1)", "http://x")).toHaveProperty("error");
+  });
+
+  it("treats zero-width-only input as empty", () => {
+    expect(normalizeTarget("​﻿ ", "http://x")).toEqual({ error: "Enter a URL or a path such as /." });
+  });
+});

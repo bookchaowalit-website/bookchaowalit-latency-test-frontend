@@ -8,9 +8,14 @@ export const TIMEOUT_MS = 10_000;
  * Bare hosts like "example.com" are treated as https.
  */
 export function normalizeTarget(input: string, origin: string): { url: string; host: string } | { error: string } {
-  const value = input.trim();
+  const value = input.replace(/[\u200B-\u200D\u2060\uFEFF]/g, "").trim();
   if (!value) return { error: "Enter a URL or a path such as /." };
-  const candidate = value.startsWith("/") || /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
+  // "localhost:3000" and "example.com:8080/health" are a host and port, not a
+  // URL scheme called "localhost:" — only treat the prefix as a scheme when it
+  // is not followed by a port number.
+  const hostWithPort = /^[a-z0-9.-]+:\d+(?:[/?#]|$)/i.test(value);
+  const hasScheme = !hostWithPort && /^[a-z][a-z0-9+.-]*:/i.test(value);
+  const candidate = value.startsWith("/") || hasScheme ? value : `https://${value}`;
   let parsed: URL;
   try {
     parsed = new URL(candidate, origin);
