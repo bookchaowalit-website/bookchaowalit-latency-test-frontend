@@ -18,3 +18,7 @@ Score: 7/10 (was 4/10) — measurements now work for cross-origin targets, input
 - `/more-projects` renders from `lib/related-projects.ts` (was ~980 lines of unrolled links plus an unused data copy) and no longer links to itself; removed the stale `app/page.tsx.backup`.
 - Measurement logic moved to `lib/latency.ts` (tested): target normalisation rejects non-http(s) schemes, stats ignore failed requests, log capped at 12.
 - Cross-origin probes previously always failed (`mode: cors`); they now use `no-cors` with a 10 s abort timeout. Added median/min/max, a real form (Enter to ping), inline validation errors, and `role=img` on the radar readout.
+
+## Done in this pass (pass 2)
+
+- Canonical host is config-driven: `lib/site.ts` resolves `NEXT_PUBLIC_SITE_URL` (validated, clear error on a non-http(s) value) and feeds `metadataBase`, generated `app/sitemap.ts` / `app/robots.ts` and the MCP `get_app_info` URL; removed the stale template `public/sitemap.xml` / `robots.txt` (they pointed at `bookchaowalit.com` and a `*.vercel.app` name that differs from the project URL). Tested in `lib/site.test.ts`.

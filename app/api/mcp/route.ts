@@ -1,11 +1,12 @@
 import { handleRpc } from "@/lib/mcp";
+import { SITE_URL } from "@/lib/site";
 
 export const runtime = "edge";
 
 const APP = {
   name: "Latency Test",
   description: "Measure round-trip time to a URL from the browser.",
-  url: "https://bookchaowalit-latency-test-frontend.vercel.app",
+  url: SITE_URL,
 };
 
 export async function POST(request: Request) {
